@@ -1,7 +1,7 @@
 %MFCC computation
 %receives a window, returns the mfccs.
 
-function coefs = mfcc(window)
+function coefs = mfcc(window, ncoefs, fs)
      
 	ftSnd32=fft(window);
 	aftSnd32=abs(ftSnd32);
@@ -17,8 +17,8 @@ function coefs = mfcc(window)
 	
 	%Pass signal thru the Mel bank
 	windowSize = length(window);
-	melFB;
-	aftSnd32 = aftSnd32(1:windowSize/2)*melFilterBank;
-	semilogy(kCenterFreq(2:end-1), aftSnd32,'r+-');
+	
+	aftSnd32 = aftSnd32(1:windowSize/2)*melFB(ncoefs, fs, windowSize);
+	%semilogy(kCenterFreq(2:end-1), aftSnd32,'r+-');
 	coefs = aftSnd32;
 end

@@ -3,11 +3,8 @@
 function fvector = extractFeatures(source, options)
 
 	%load samples, compute zcc, energy, plot signal in time
-	[zcc_energy, samples, fs] = preprocess(source, plot_progress = false);
+	[zcc_energy, samples, fs, num_windows, fsize] = preprocess(source, plot_progress = false, options);
 	
-	%normalize
-	samples = maxMinNormalization(samples);
-
 	%Obtain centroids and assignments to separate between voice and unvoiced
 	initial_centroids = [2 3;50 2]
 	[centroids, idx] = runkMeans(zcc_energy, initial_centroids, iterations = 5, plot_progress = 0);
@@ -19,23 +16,27 @@ function fvector = extractFeatures(source, options)
 		voiced = 1;
 	end
 
-	%TODO: remove hard coded frame size
+	%normalize
+	samples = maxMinNormalization(samples);
 	j=1;
 	vector = 0;
-	for i = 2:(length(samples)/160 -2)
+	
+	%Iterate over each frame
+    for nwindow = 1:(num_windows-2),
+        index1 = (nwindow-1)*fsize +1;
+        index2 = index1+2*fsize-1;
+        
 		%Obtain pitch and formants using LPC, only if this is a VOICED frame.
-		if idx(i)==voiced
-		    if zcc_energy(i,1)>55
+        if idx(nwindow)==voiced
+		    if zcc_energy(nwindow,1)>55
 			   continue;
 			end
 			
-			if zcc_energy(i,2)<0.1
+			if zcc_energy(nwindow,2)<0.1
 			   continue;
 			end
 			
-			begining = (i-1)*160 + 1 -110;
-			ending = begining + 320 + 110;
-			frame = samples(begining:ending);
+			frame = samples(index1:index2);
 			
 			%Apply hamming window
 			window = hamming(length(frame));
@@ -62,9 +63,9 @@ function fvector = extractFeatures(source, options)
 
 			end
 			
-			%options.mfcc not currently used, using 14 coefficients
+			%Compute MFCCs according to options.mfcc
 			if options.mfcc
-				vector = [vector, mfcc(frame)]; %, cepstrum(frame), mfcc(frame)
+				vector = [vector, mfcc(frame, options.mfcc, fs)]; 
 			end
 
 			%Dynamic frequency features

@@ -1,34 +1,17 @@
 %Creates an options object for choosing which features to extract
 
-function options = featureopt(pitch, pitchv, formants, formantsv, mfcc, mfccv, delta, deltav)
+function options = featureopt(varargin)
 
-
-	%TODO: to allow more flexible arg order, replace with this
-    % for i = 1:length (varargin)
-    %   if strcmp(varargin{i}, 'pitch')
-	%		options.pitch = varargin{i+1}
-	%	end
-    % endfor
-
-	options.pitch = false;
-	if exist('pitch', 'var') && strcmp(pitch, 'pitch')
-		options.pitch = pitchv;
-	end	
-
-
-	options.formants = 0;
-	if exist('formants', 'var') && strcmp(formants, 'formants') && formantsv < 4
-		options.formants = formantsv;
-	end	
-
-	options.mfcc = 0;
-	if exist('mfcc', 'var') && strcmp(mfcc, 'mfcc') && mfccv>10 && mfccv<30
-		options.mfcc = mfccv;
-	end
+	if mod(length(varargin), 2)
+	    error('Call featureopt with a list of key/value pairs such as featureopt(key1, val1, ..., keyN, valN)');
+    end
 	
-	
-	options.delta = false;
-	if exist('delta', 'var') && strcmp(delta, 'delta')
-		options.delta = delta;
-	end
+	%TODO: add specific parameter check
+    for i = 1:2:length(varargin)
+        if  strcmp(varargin{i}, 'pitch') && isbool(varargin{i+1})
+		    options.pitch = false;
+		end
+		options.(varargin{i}) = varargin{i+1};
+    end
+
 end
